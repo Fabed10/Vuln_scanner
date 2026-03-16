@@ -87,17 +87,19 @@ Aucun serveur local requis. L'outil interroge directement l'API publique NVD :
 https://services.nvd.nist.gov/rest/json/cves/2.0
 ```
 
-### Clé API ( recommandé)
+### Clé API 
 
-Obtenir une clé gratuite : https://nvd.nist.gov/developers/request-an-api-key
-
-Puis l'ajouter dans `cve/config.py` :
-
-```python
-NVD_API_KEY = "votre-clé-ici"
+1. Copie le fichier exemple :
+```bash
+cp cve/config.example.py cve/config.py
 ```
 
----
+2. Ouvre `cve/config.py` et ajoute ta clé NVD :
+```python
+NVD_API_KEY = "ta-clé-ici"
+```
+
+3. Obtenir une clé gratuite : https://nvd.nist.gov/developers/request-an-api-key
 
 ## Pipeline de traitement
 
