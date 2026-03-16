@@ -1,0 +1,18 @@
+# Cache Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Rapports générés
+results/
+
+# Clé API NVD — ne jamais pousser sur GitHub
+cve/config.py
+
+# VS Code
+.vscode/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
