@@ -1,6 +1,6 @@
 # Vulnerability Scanner
 
-Scanner de ports Python avec **détection d'OS**, **analyse CVE automatique** (API NVD) et **rapport HTML**.
+Scanner de ports Python avec **analyse CVE automatique** (API NVD) et **rapport HTML**.
 
 ---
 
