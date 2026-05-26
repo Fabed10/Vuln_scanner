@@ -235,6 +235,25 @@ class ReconScanner:
         if port == 23:
             data = self._supprimer_iac(data)
 
+        # APRÈS
+        # Pour les ports HTTP : extraire le header Server: en priorité
+        if port in (80, 443, 8080, 8443, 8000):
+            try:
+                texte_http = data.decode("latin-1", errors="replace")
+                for ligne in texte_http.splitlines():
+                    if ligne.lower().startswith("server:"):
+                        server = ligne.split(":", 1)[1].strip()
+                        if server:
+                            return server[:100]
+                # Fallback : retourner la première ligne de statut HTTP
+                for ligne in texte_http.splitlines():
+                    ligne = ligne.strip()
+                    if ligne:
+                        return ligne[:100]
+            except Exception:
+                pass
+            return ""
+
         try:
             texte = data.decode("latin-1", errors="replace")
         except Exception:

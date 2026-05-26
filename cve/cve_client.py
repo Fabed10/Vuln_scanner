@@ -19,14 +19,24 @@ class CVEClient:
         req = urllib.request.Request(url)
         req.add_header("Accept", "application/json")
         if self.api_key: req.add_header("apiKey", self.api_key)
-        try:
-            with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT) as r:
-                return json.loads(r.read().decode("utf-8"))
-        except urllib.error.HTTPError as e:
-            if e.code == 403: print_warning("NVD – rate limit ou clé invalide.")
-            elif e.code != 404: print_error(f"NVD HTTP {e.code}")
-        except urllib.error.URLError as e: print_error(f"NVD connexion: {e.reason}")
-        except Exception as e: print_error(f"NVD erreur: {e}")
+        # APRÈS
+        retries = 3
+        for attempt in range(1, retries + 1):
+            try:
+                with urllib.request.urlopen(req, timeout=REQUEST_TIMEOUT) as r:
+                    return json.loads(r.read().decode("utf-8"))
+            except urllib.error.HTTPError as e:
+                if e.code == 403: print_warning("NVD – rate limit ou clé invalide."); break
+                elif e.code == 404: break
+                else:
+                    print_error(f"NVD HTTP {e.code} (tentative {attempt}/{retries})")
+                    if attempt < retries: time.sleep(2 * attempt)
+            except urllib.error.URLError as e:
+                print_error(f"NVD connexion: {e.reason} (tentative {attempt}/{retries})")
+                if attempt < retries: time.sleep(2 * attempt)
+            except Exception as e:
+                print_error(f"NVD erreur: {e} (tentative {attempt}/{retries})")
+                if attempt < retries: time.sleep(2 * attempt)
         return None
 
     def search_cves(self, term, limit=CVE_RESULTS_LIMIT):

@@ -1,5 +1,6 @@
 import sys
 import os
+import webbrowser
 from datetime import datetime
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -143,11 +144,13 @@ def run_scan_network(cidr: str):
         print_final_report(ip, ports)
 
     # affichage du chemin HTML 
+    abs_html_path = os.path.abspath(html_path)
     print(colorize("═" * 70, Colors.GREEN, Colors.BOLD))
     print(colorize("  [✔] RAPPORT HTML GÉNÉRÉ", Colors.GREEN, Colors.BOLD))
-    print(colorize(f"      {os.path.abspath(html_path)}", Colors.CYAN, Colors.BOLD))
+    print(colorize(f"      {abs_html_path}", Colors.CYAN, Colors.BOLD))
     print(colorize("═" * 70, Colors.GREEN, Colors.BOLD))
     print()
+    webbrowser.open(f"file://{abs_html_path}")
 
 
 #  Menus
@@ -172,16 +175,17 @@ def run_scan_and_report(target: str, ports):
         return
     print_final_report(target, enrichis)
 
-    # Export HTML pour machine seule aussi
-    rep = input(colorize("\n  [?] Générer le rapport HTML ? (o/n) : ", Colors.CYAN)).strip().lower()
-    if rep in ("o", "oui", "y", "yes"):
-        path = generate_html_report(target, {target: enrichis})
-        print_final_report(target, enrichis)
-        print(colorize("═" * 70, Colors.GREEN, Colors.BOLD))
-        print(colorize("  [✔] RAPPORT HTML GÉNÉRÉ", Colors.GREEN, Colors.BOLD))
-        print(colorize(f"      {os.path.abspath(path)}", Colors.CYAN, Colors.BOLD))
-        print(colorize("═" * 70, Colors.GREEN, Colors.BOLD))
-        print()
+    # Export HTML automatique sans demander confirmation
+    path = generate_html_report(target, {target: enrichis})
+    abs_path = os.path.abspath(path)
+    print(colorize("═" * 70, Colors.GREEN, Colors.BOLD))
+    print(colorize("  [✔] RAPPORT HTML GÉNÉRÉ", Colors.GREEN, Colors.BOLD))
+    print(colorize(f"      {abs_path}", Colors.CYAN, Colors.BOLD))
+    print(colorize("═" * 70, Colors.GREEN, Colors.BOLD))
+    print()
+
+    # Ouverture automatique du rapport dans le navigateur
+    webbrowser.open(f"file://{abs_path}")
 
 
 
