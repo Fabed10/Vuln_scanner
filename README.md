@@ -1,50 +1,56 @@
 # Vulnerability Scanner
 
-Scanner de ports Python avec **analyse CVE automatique** (API NVD) et **rapport HTML**.
-
+Scanner de ports Python automatisé avec **analyse CVE automatique** (API NVD), **découverte réseau**, et **génération de rapports professionnels (HTML & PDF)**. Développé dans le cadre d'un projet de fin d'études.
 ---
 
 ## Architecture du projet
 
 ```
 vuln_scanner/
-├── main.py                      ← Point d'entrée principal
-├── utils_ports.py               ← ports (liste, plage, mixte)
-├── requirements.txt
+├── main.py                      ← Point d'entrée principal de l'application
+├── utils_ports.py               ← Gestion des options de ports (liste, plage, mixte)
+├── requirements.txt             ← Liste des dépendances du projet
+├── .gitignore                   ← Configuration Git (exclut les rapports générés)
 │
 ├── core/
-│   ├── scanner.py               ← Moteur multi-threadé (500 workers)
-│   ├── reconnaissance.py        ← Connexion socket + extraction de bannière
-│   ├── vulnerability.py         ← Correspondance bannière → CVE
-│   └── network_discovery.py     ← Scan CIDR/plage + détection OS 
+│   ├── scanner.py               ← Moteur de scan multi-threadé
+│   ├── reconnaissance.py        ← Gestion des sockets et extraction de bannières
+│   ├── vulnerability.py         ← Logique de correspondance Bannière → Mots-clés CVE
+│   └── network_discovery.py     ← Scan CIDR et détection d'OS (TTL)
 │
 ├── cve/
-│   ├── config.py                ← Clé API NVD 
-│   ├── cve_client.py            ← Client HTTP vers l'API NVD publique
-│   └── cve_parser.py            ← Normalisation CVE + extraction vecteurs CVSS
+│   ├── config.py                ← Configuration locale et stockage de la clé API NVD
+│   ├── cve_client.py            ← Client de requêtage vers l'API NVD publique (v2.0)
+│   └── cve_parser.py            ← Normalisation des données et extraction des scores CVSS
 │
 ├── reporting/
-│   ├── format.py                ← Affichage coloré terminal
-│   ├── report.py                ← Rapport final terminal
-│   └── html_report.py           ← Génération du rapport HTML
+│   ├── format.py                ← Formatage des données pour les flux de sortie
+│   ├── report.py                ← Rendu textuel détaillé dans le terminal
+│   ├── html_report.py           ← Moteur de génération du rapport interactif HTML
+│   ├── pdf_report.py            ← Point d'entrée de la structure PDF
+│   └── rapport_pdf.py           ← Design, Tableaux et mise en page ReportLab du PDF
 │
 ├── utils/
-│   ├── colors.py                ← Codes ANSI + fonctions d'affichage
-│   ├── helpers.py               ← Fonctions utilitaires
-│   └── log.py                   ← Logger vers fichier
+│   ├── colors.py                ← Configuration des palettes de couleurs (ANSI & RGB)
+│   ├── helpers.py               ← Fonctions utilitaires globales
+│   └── log.py                   ← Système de journalisation (logs de l'application)
 │
-└── results/                     ← Rapports HTML générés automatiquement
+└── results/                     ← Dossier local contenant les rapports générés (Ignoré par Git)
 ```
 
 ---
 
 ## Installation
 
+1. Clonez le dépôt sur votre machine locale :
 ```bash
-pip install tqdm python-nmap
+git clone [https://github.com/Fabed10/Vuln_scanner.git](https://github.com/Fabed10/Vuln_scanner.git)
+cd Vuln_scanner
 ```
-
-
+2. Installez l'ensemble des dépendances requises:
+```bash
+pip install -r requirements.txt
+```
 ---
 
 ## Utilisation
@@ -104,19 +110,19 @@ NVD_API_KEY = "ta-clé-ici"
 ## Pipeline de traitement
 
 ```
-Port ouvert détecté
-        ↓
-Banner grabbing 
-        ↓
-core/vulnerability.py → banner_to_search_term()
-        ↓  ex: "OpenSSH 8.2" → "openssh"
-cve/cve_client.py → search_cves("openssh", limit=5)
-        ↓  requête GET → api.nvd.nist.gov
-cve/cve_parser.py → parse_cve_list()
-        ↓  CVE + score CVSS + vecteurs
-reporting/html_report.py → generate_html_report()
-        ↓
-results/rapport_xxx.html
+[Port ouvert détecté]
+         ↓
+[Banner grabbing] ──► Récupération de la version du service (ex: "OpenSSH 8.2")
+         ↓
+[core/vulnerability.py] ──► Normalisation de la bannière en mots-clés ("openssh")
+         ↓
+[cve/cve_client.py] ──► Requête HTTP GET vers l'API REST NVD
+         ↓
+[cve/cve_parser.py] ──► Extraction du code CVE, score de sévérité et vecteurs d'attaque
+         ↓
+[reporting/html_report.py] ──► Compilation du Dashboard HTML dynamique
+         ↓
+[reporting/rapport_pdf.py] ──► Génération du rapport PDF prêt à l'impression
 ```
 
 ---
@@ -130,5 +136,3 @@ results/rapport_xxx.html
 | 🟡 Jaune | MEDIUM |
 | 🟢 Vert | LOW |
 | ⚪ Gris | UNKNOWN |
-| 🔵 Cyan | En-têtes / structure |
-| 🟣 Magenta | Blocs CVE par port |
