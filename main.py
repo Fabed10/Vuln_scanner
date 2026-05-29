@@ -143,13 +143,15 @@ def run_scan_network(cidr: str):
     ):
         print_final_report(ip, ports)
 
-    # affichage du chemin HTML 
+    # affichage du chemin HTML
     abs_html_path = os.path.abspath(html_path)
     print(colorize("═" * 70, Colors.GREEN, Colors.BOLD))
     print(colorize("  [✔] RAPPORT HTML GÉNÉRÉ", Colors.GREEN, Colors.BOLD))
     print(colorize(f"      {abs_html_path}", Colors.CYAN, Colors.BOLD))
     print(colorize("═" * 70, Colors.GREEN, Colors.BOLD))
     print()
+
+    # Ouverture automatique du rapport dans le navigateur
     webbrowser.open(f"file://{abs_html_path}")
 
 

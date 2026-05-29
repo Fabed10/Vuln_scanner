@@ -4,7 +4,9 @@ Produit un fichier HTML autonome (CSS + JS inclus) dans results/.
 """
 
 import os
+import base64
 from datetime import datetime
+from reporting.rapport_pdf import generate_pdf_report
 
 RESULTS_DIR = os.path.join(os.path.dirname(__file__), "..", "results")
 
@@ -206,6 +208,19 @@ def generate_html_report(network: str, results: dict[str, list[dict]], os_map: d
     cards_html = ""
     for rank, (ip, ports, score) in enumerate(scored, 1):
         cards_html += _build_machine_card(rank, ip, ports, score, (os_map or {}).get(ip))
+
+    # ── Génération PDF embarqué (bouton téléchargement) ──────────────────────
+    try:
+        pdf_path  = generate_pdf_report(network, results, os_map or {}, ts)
+        with open(pdf_path, "rb") as _f:
+            pdf_b64 = base64.b64encode(_f.read()).decode("utf-8")
+        pdf_fname = f"rapport_{network.replace('/', '_').replace('.', '_')}.pdf"
+        pdf_btn = (
+            f'<a class="pdf-btn" href="data:application/pdf;base64,{pdf_b64}" '
+            f'download="{pdf_fname}">&#160;&#128196;&#160;T&eacute;l&eacute;charger le rapport PDF</a>'
+        )
+    except Exception as e:
+        pdf_btn = f'<span class="pdf-btn-err">PDF indisponible : {e}</span>'
 
     html = f"""<!DOCTYPE html>
 <html lang="fr">
@@ -560,6 +575,28 @@ def generate_html_report(network: str, results: dict[str, list[dict]], os_map: d
     font-family: 'JetBrains Mono', monospace;
   }}
 
+  /* ── Bouton PDF ── */
+  .pdf-btn {{
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: linear-gradient(135deg, #e63946, #c1121f);
+    color: #fff; text-decoration: none;
+    padding: 0.55rem 1.25rem; border-radius: 8px;
+    font-family: 'Syne', sans-serif; font-size: 0.82rem; font-weight: 700;
+    letter-spacing: 0.04em;
+    border: 1px solid rgba(255,255,255,0.15);
+    box-shadow: 0 2px 8px rgba(198,18,31,0.35);
+    transition: all 0.2s; white-space: nowrap;
+  }}
+  .pdf-btn:hover {{
+    background: linear-gradient(135deg, #c1121f, #a4000f);
+    box-shadow: 0 4px 16px rgba(198,18,31,0.5);
+    transform: translateY(-1px);
+  }}
+  .pdf-btn-err {{
+    font-size: 0.75rem; color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }}
+
   /* ── Footer ── */
   footer {{
     position: relative; z-index: 1;
@@ -597,6 +634,9 @@ def generate_html_report(network: str, results: dict[str, list[dict]], os_map: d
     Réseau cible : <span>{network}</span><br>
     Date du scan : <span>{ts}</span><br>
     Machines analysées : <span>{total_machines}</span>
+  </div>
+  <div style="display:flex;align-items:center;">
+    {pdf_btn}
   </div>
 </header>
 
